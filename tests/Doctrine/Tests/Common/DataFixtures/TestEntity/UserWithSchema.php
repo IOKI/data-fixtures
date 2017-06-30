@@ -4,15 +4,16 @@ namespace Doctrine\Tests\Common\DataFixtures\TestEntity;
 
 /**
  * @Entity
+ * @Table(name="user",schema="test_schema")
  */
-class User
+class UserWithSchema
 {
     /**
      * @Column(type="integer")
      * @Id
      */
     private $id;
-
+    
     /**
      * @Column(length=32)
      * @Id
@@ -35,7 +36,7 @@ class User
     private $role;
 
     /**
-     * @ManyToMany(targetEntity="Doctrine\Tests\Common\DataFixtures\TestEntity\User", inversedBy="authors")
+     * @ManyToMany(targetEntity="Doctrine\Tests\Common\DataFixtures\TestEntity\UserWithSchema", inversedBy="authors")
      * @JoinTable(name="author_reader", schema="readers",
      *      joinColumns={@JoinColumn(name="author_id", referencedColumnName="id")},
      *      inverseJoinColumns={@JoinColumn(name="reader_id", referencedColumnName="id")}
@@ -46,7 +47,7 @@ class User
     private $readers;
 
     /**
-     * @ManyToMany(targetEntity="Doctrine\Tests\Common\DataFixtures\TestEntity\User", mappedBy="readers")
+     * @ManyToMany(targetEntity="Doctrine\Tests\Common\DataFixtures\TestEntity\UserWithSchema", mappedBy="readers")
      *
      * @var User[]
      */
@@ -56,12 +57,12 @@ class User
     {
         $this->id = $id;
     }
-
+    
     public function setCode($code)
     {
         $this->code = $code;
     }
-
+    
     public function setPassword($password)
     {
         $this->password = md5($password);

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -17,21 +18,27 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Doctrine\Common\DataFixtures;
-
-use Doctrine\Common\Persistence\ObjectManager;
+namespace Doctrine\Tests\Mock;
 
 /**
- * Interface contract for fixture classes to implement.
+ * Node.
  *
- * @author Jonathan H. Wage <jonwage@gmail.com>
+ * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
  */
-interface FixtureInterface
+class Node
 {
     /**
-     * Load data fixtures with the passed EntityManager
-     *
-     * @param ObjectManager $manager
+     * @var mixed
      */
-    public function load(ObjectManager $manager);
+    public $value;
+
+    /**
+     * Constructor.
+     *
+     * @param mixed $value
+     */
+    public function __construct($value)
+    {
+        $this->value = $value;
+    }
 }

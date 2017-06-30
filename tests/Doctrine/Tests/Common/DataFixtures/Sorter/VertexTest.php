@@ -1,4 +1,5 @@
 <?php
+
 /*
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -17,21 +18,25 @@
  * <http://www.doctrine-project.org>.
  */
 
-namespace Doctrine\Common\DataFixtures;
+namespace Doctrine\Test\DataFixtures\Sorter;
 
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Common\DataFixtures\Sorter\Vertex;
+use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
- * Interface contract for fixture classes to implement.
+ * @author Marco Pivetta <ocramius@gmail.com>
  *
- * @author Jonathan H. Wage <jonwage@gmail.com>
+ * @covers \Doctrine\Common\DataFixtures\Sorter\Vertex
  */
-interface FixtureInterface
+class VertexTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * Load data fixtures with the passed EntityManager
-     *
-     * @param ObjectManager $manager
-     */
-    public function load(ObjectManager $manager);
+    public function testNode()
+    {
+        $value = new ClassMetadata('\Sample\Entity');
+        $node  = new Vertex($value);
+
+        self::assertSame($value, $node->value);
+        self::assertSame(Vertex::NOT_VISITED, $node->state);
+        self::assertSame([], $node->dependencyList);
+    }
 }

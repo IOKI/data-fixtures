@@ -20,6 +20,7 @@
 namespace Doctrine\Common\DataFixtures;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ODM\PHPCR\DocumentManager as PhpcrDocumentManager;
 
 /**
  * ReferenceRepository class manages references for
@@ -70,14 +71,23 @@ class ReferenceRepository
      * @param object $reference Reference object
      * @param object $uow       Unit of work
      *
-     * @return mixed
+     * @return array
      */
     protected function getIdentifier($reference, $uow)
     {
+        // In case Reference is not yet managed in UnitOfWork
+        if ( ! $this->hasIdentifier($reference)) {
+            $class = $this->manager->getClassMetadata(get_class($reference));
+
+            return $class->getIdentifierValues($reference);
+        }
+
+        // Dealing with ORM UnitOfWork
         if (method_exists($uow, 'getEntityIdentifier')) {
             return $uow->getEntityIdentifier($reference);
         }
 
+        // ODM UnitOfWork
         return $uow->getDocumentIdentifier($reference);
     }
 
@@ -92,9 +102,10 @@ class ReferenceRepository
     public function setReference($name, $reference)
     {
         $this->references[$name] = $reference;
-        // in case if reference is set after flush, store its identity
-        $uow = $this->manager->getUnitOfWork();
-        if ($uow->isInIdentityMap($reference)) {
+
+        if ($this->hasIdentifier($reference)) {
+            // in case if reference is set after flush, store its identity
+            $uow = $this->manager->getUnitOfWork();
             $this->identities[$name] = $this->getIdentifier($reference, $uow);
         }
     }
@@ -138,20 +149,26 @@ class ReferenceRepository
      * named by $name
      *
      * @param string $name
+     * @throws OutOfBoundsException - if repository does not exist
      * @return object
      */
     public function getReference($name)
     {
+        if (!$this->hasReference($name)) {
+            throw new \OutOfBoundsException("Reference to: ({$name}) does not exist");
+        }
+
         $reference = $this->references[$name];
         $meta = $this->manager->getClassMetadata(get_class($reference));
-        $uow = $this->manager->getUnitOfWork();
-        if (!$uow->isInIdentityMap($reference) && isset($this->identities[$name])) {
+
+        if (!$this->manager->contains($reference) && isset($this->identities[$name])) {
             $reference = $this->manager->getReference(
                 $meta->name,
                 $this->identities[$name]
             );
             $this->references[$name] = $reference; // already in identity map
         }
+
         return $reference;
     }
 
@@ -217,5 +234,24 @@ class ReferenceRepository
     public function getManager()
     {
         return $this->manager;
+    }
+
+    /**
+     * Checks if object has identifier already in unit of work.
+     *
+     * @param $reference
+     *
+     * @return bool
+     */
+    private function hasIdentifier($reference)
+    {
+        // in case if reference is set after flush, store its identity
+        $uow = $this->manager->getUnitOfWork();
+
+        if ($this->manager instanceof PhpcrDocumentManager) {
+            return $uow->contains($reference);
+        } else {
+            return $uow->isInIdentityMap($reference);
+        }
     }
 }
